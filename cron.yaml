@@ -1,0 +1,4 @@
+cron:
+- description: Check for new comics
+  url: /cron
+  schedule: every 60 minutes
