@@ -52,6 +52,19 @@ def get_latest_xkcd():
     return data or [url, alt]
 
 
+def get_latest_candh():
+    data = memcache.get('candh-latest')
+    if data is None:
+        result = urlfetch.fetch('http://explosm.net/comics/')
+        content = result.content
+        match = re.search('<img alt="Cyanide and Happiness, a daily webcomic" src="(.*?)" border=0>', content)
+        if not match:
+            return False
+        url = match.group(1)
+        memcache.set('candh-latest', url, 60*30)
+    return data or url
+
+
 def get_latest_jl8():
     num = memcache.get('jl8-latest')
     if num is None:
@@ -82,11 +95,13 @@ comic_types = {
     'xkcd': get_latest_xkcd,
     'smbc': get_latest_smbc,
     'jl8': get_latest_jl8,
+    'candh': get_latest_candh,
 }
 
 pretty_names = {
     'smbc': 'SMBC',
     'jl8': 'JL8',
+    'candh': 'Cyanide & Happiness'
 }
 
 
@@ -153,8 +168,16 @@ class SMBC(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('smbc.html')
         self.response.write(template.render(data=get_latest_smbc()))
 
+
+class CandH(webapp2.RequestHandler):
+    def get(self):
+        template = JINJA_ENVIRONMENT.get_template('candh.html')
+        self.response.write(template.render(data=get_latest_candh()))
+
+
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
+    ('/candh', CandH),
     ('/jl8', JL8),
     ('/xkcd', XKCD),
     ('/smbc', SMBC),
