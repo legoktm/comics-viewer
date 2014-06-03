@@ -94,7 +94,7 @@ def get_latest_smbc():
 comic_types = {
     'xkcd': get_latest_xkcd,
     'smbc': get_latest_smbc,
-    'jl8': get_latest_jl8,
+    #'jl8': get_latest_jl8,
     'candh': get_latest_candh,
 }
 
@@ -133,7 +133,10 @@ class CronHandler(webapp2.RequestHandler):
             objs.append(WebComic(source=cmc))
         futures = []
         for obj in objs:
-            latest = comic_types[obj.source]()
+            if obj.source in comic_types:
+                latest = comic_types[obj.source]()
+            else:
+                continue
             self.response.write(latest)
             self.response.write(obj.last)
             if latest != obj.last:
